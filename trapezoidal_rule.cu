@@ -26,10 +26,13 @@ inline void gpu_handle_error( cudaError_t err, const char* file, int line, int a
 }
 #define gpu_err_chk(e) {gpu_handle_error( e, __FILE__, __LINE__ );}
 
-// functions
-// You can replace any invoked math function with another.
-    // To test this, you can replace the function calls in the
-    // trapezoidal functions (host & device) with any of the others below.
+/*
+Integral Functions
+You can replace any invoked math function with another.
+    To test this, you can replace the function calls in the
+    trapezoidal functions (host & device) with any of the others below.
+I tried to implement these functions with functors, but they didn't work
+as expected with device code.    */
 float func_1a( float input )
 {
     return 1/(1+input*input);
@@ -61,19 +64,26 @@ __device__ float func_3b( float input )
 
 
 
-
+// Serial trapezoidal rule function.
+// Change around the commented lines to run it with other math functions.
 float trapezoidal( float a, float b, float n )
 {
     float delta = (b-a)/n;
-    float s = func_2a(a) + func_2a(b);
+    float s = func_1a(a) + func_1a(b);
+    // float s = func_2a(a) + func_2a(b);
+    // float s = func_3a(a) + func_3a(b);
+
     for( int i = 1; i < n; i++ )
     {
-        s += 2.0*func_2a(a+i*delta);
+        s += 2.0*func_1a(a+i*delta);
+        // s += 2.0*func_2a(a+i*delta);
+        // s += 2.0*func_3a(a+i*delta);
     }
     return (delta/2)*s;
 }
 
-// Here is the trapezoidal kernel function.
+// Parallelized trapezoidal rule function.
+// Change around the commented lines to run it with other math functions.
 __global__ void trapezoidal_kernel( float a, float b, float n, float* d_output )
 {
     unsigned int tid = blockIdx.x * blockDim.x + threadIdx.x;
@@ -82,7 +92,9 @@ __global__ void trapezoidal_kernel( float a, float b, float n, float* d_output )
 
     if( tid < n )
     {
-        d_output[tid] = func_2b(s) + func_2b(s + delta);
+        d_output[tid] = func_1b(s) + func_1b(s + delta);
+        // d_output[tid] = func_2b(s) + func_2b(s + delta);
+        // d_output[tid] = func_3b(s) + func_3b(s + delta);
     }
 }
 
