@@ -51,10 +51,10 @@ __device__ float func_3b( float input )
 float trapezoidal( float a, float b, float n )
 {
     float delta = (b-a)/n;
-    float s = func_1a(a) + func_1a(b);
+    float s = func_2a(a) + func_2a(b);
     for( int i = 1; i < n; i++ )
     {
-        s += 2.0*func_1a(a+i*delta);
+        s += 2.0*func_2a(a+i*delta);
     }
     return (delta/2)*s;
 }
@@ -67,7 +67,7 @@ __global__ void trapezoidal_kernel( float a, float b, float n, float* d_output )
 
     if( tid < n )
     {
-        d_output[tid] = func_1b(s) + func_1b(s + delta);
+        d_output[tid] = func_2b(s) + func_2b(s + delta);
     }
 }
 
@@ -85,7 +85,7 @@ int main()
     float parallel_result = 0.0f;
     float* h_kernel_output = (float*)malloc(n * sizeof(float));
     float* d_kernel_output;
-
+    cout.precision(5);
 
     // print out host function result
     cout << "Function 1: " << endl;
