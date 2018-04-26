@@ -1,8 +1,17 @@
+/*
+    By: Carrick McClain
+    Sources:
+        http://csweb.cs.wfu.edu
+        https://stackoverflow.com
+        http://www.cplusplus.com
+        https://devtalk.nvidia.com
+        https://docs.nvidia.com/cuda/cuda-c-programming-guide
+*/
+
 #include <iostream>
 #include <stdio.h>
 #include <cuda.h>
 #include <cuda_runtime.h>
-
 
 using namespace std;
 
@@ -17,8 +26,10 @@ inline void gpu_handle_error( cudaError_t err, const char* file, int line, int a
 }
 #define gpu_err_chk(e) {gpu_handle_error( e, __FILE__, __LINE__ );}
 
-// function 1 (host & gpu versions)
-// can replace with any other function
+// functions
+// You can replace any invoked math function with another.
+    // To test this, you can replace the function calls in the
+    // trapezoidal functions (host & device) with any of the others below.
 float func_1a( float input )
 {
     return 1/(1+input*input);
@@ -48,6 +59,9 @@ __device__ float func_3b( float input )
     return ((2.0*input*input*input) / (5.0*input*input));
 }
 
+
+
+
 float trapezoidal( float a, float b, float n )
 {
     float delta = (b-a)/n;
@@ -59,6 +73,7 @@ float trapezoidal( float a, float b, float n )
     return (delta/2)*s;
 }
 
+// Here is the trapezoidal kernel function.
 __global__ void trapezoidal_kernel( float a, float b, float n, float* d_output )
 {
     unsigned int tid = blockIdx.x * blockDim.x + threadIdx.x;
@@ -73,7 +88,10 @@ __global__ void trapezoidal_kernel( float a, float b, float n, float* d_output )
 
 int main()
 {
-    cudaFree(0);    // starts CUDA context, absorbs cost of startup
+    // starts CUDA context, absorbs cost of startup
+    // while starting, the program may seem to hang for a few seconds!
+    // don't worry, it will work eventually.
+    cudaFree(0);    
 
 
     // initializations
@@ -91,14 +109,12 @@ int main()
     cout << "Function 1: " << endl;
     cout << "Serial: Value of integral is " << trapezoidal(a, b, n) << endl;
     
-
     /* 
-        Now the parallel part.
-        The cudaMalloc was taking tons of time when I tested, not sure why.
-        That's why I made the cudaFree(0) at the beginning.
-        It absorbs the time cost of setting up the CUDA context,
-            so the cudaMalloc() then takes relatively little time.
-    */
+    Now the parallel part.
+    The cudaMalloc was taking tons of time when I tested, not sure why.
+    That's why I made the cudaFree(0) at the beginning.
+    It absorbs the time cost of setting up the CUDA context,
+        so the cudaMalloc() then takes much less time to execute.  */
     err = cudaMalloc( (void**) &d_kernel_output, n * sizeof(float) );
     gpu_err_chk(err);
     err = cudaMemcpy( d_kernel_output, h_kernel_output, n * sizeof(float), cudaMemcpyHostToDevice );
