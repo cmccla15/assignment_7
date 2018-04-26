@@ -28,24 +28,24 @@ __device__ float func_1b( float input )
     return 1/(1+input*input);
 }
 
-// function 2 (host &* gpu versions)
+// function 2 (host & gpu versions)
 float func_2a( float input )
 {
-    return 1/(1+input*input);
+    return ((1.0*input*input) + (3.0*input*input) + 5.0);
 }
 __device__ float func_2b( float input )
 {
-    return 1/(1+input*input);
+    return ((1.0*input*input) + (3.0*input*input) + 5.0);
 }
 
 //function 3 (host & gpu versions)
 float func_3a( float input )
 {
-    return 1/(1+input*input);
+    return ((2.0*input*input*input) / (5.0*input*input));
 }
 __device__ float func_3b( float input )
 {
-    return 1/(1+input*input);
+    return ((2.0*input*input*input) / (5.0*input*input));
 }
 
 float trapezoidal( float a, float b, float n )
@@ -93,11 +93,11 @@ int main()
     
 
     /* 
-        now the parallel part.
-        the cudaMalloc was taking tons of time when I tested, not sure why.
-        that's why I made the cudaFree(0) at the beginning.
-        it absorbs the time cost of setting up the CUDA context,
-        so the cudaMalloc() then takes relatively little time.
+        Now the parallel part.
+        The cudaMalloc was taking tons of time when I tested, not sure why.
+        That's why I made the cudaFree(0) at the beginning.
+        It absorbs the time cost of setting up the CUDA context,
+            so the cudaMalloc() then takes relatively little time.
     */
     err = cudaMalloc( (void**) &d_kernel_output, n * sizeof(float) );
     gpu_err_chk(err);
